@@ -200,17 +200,21 @@ export function validateStructureSanity(plan: CampaignPlan): { valid: boolean; e
       errors.push(`NonBrand campaign must have at least 3 ad groups, found ${campaign.adGroups.length}`);
     }
 
-    // Check keyword distribution (no single ad group should dominate)
-    const totalKeywords = campaign.adGroups.reduce((sum, g) => sum + g.keywords.length, 0);
-    for (const group of campaign.adGroups) {
-      const percentage = (group.keywords.length / totalKeywords) * 100;
-      if (percentage > 80) {
-        errors.push(
-          `Ad group "${group.name}" has ${percentage.toFixed(0)}% of all keywords (should be more balanced)`
-        );
+    // Check keyword distribution (no single ad group should dominate) - only for NonBrand
+    if (campaign.campaignName.includes("NonBrand")) {
+      const totalKeywords = campaign.adGroups.reduce((sum, g) => sum + g.keywords.length, 0);
+      for (const group of campaign.adGroups) {
+        const percentage = (group.keywords.length / totalKeywords) * 100;
+        if (percentage > 80) {
+          errors.push(
+            `Ad group "${group.name}" has ${percentage.toFixed(0)}% of all keywords (should be more balanced)`
+          );
+        }
       }
+    }
 
-      // Check for empty ad groups
+    // Check for empty ad groups and duplicates (applies to all campaigns)
+    for (const group of campaign.adGroups) {
       if (group.keywords.length === 0) {
         errors.push(`Ad group "${group.name}" has no keywords`);
       }
