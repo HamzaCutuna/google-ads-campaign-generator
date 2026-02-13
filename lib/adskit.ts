@@ -17,6 +17,7 @@ import {
   validateNegativesCount,
   validateNoShopifyMention,
   validateNegativesAgainstPositiveTerms,
+  validateStructureSanity,
   type CampaignPlan as AICampaignPlan,
   type AdCopy as AIAdCopy,
 } from "./ai/schema";
@@ -67,8 +68,18 @@ function csvEscape(value: string): string {
 function buildCampaignsKeywordsCsv(adGroups: AdGroupData[]): string {
   const rows = ["Campaign,Ad Group,Keyword,Match Type"];
 
-  for (const group of adGroups) {
-    for (const keyword of group.keywords) {
+  // Sort by Campaign -> Ad Group -> Keyword
+  const sortedGroups = [...adGroups].sort((a, b) => {
+    if (a.campaignName !== b.campaignName) {
+      return a.campaignName.localeCompare(b.campaignName);
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  for (const group of sortedGroups) {
+    const sortedKeywords = [...group.keywords].sort((a, b) => a.text.localeCompare(b.text));
+
+    for (const keyword of sortedKeywords) {
       rows.push(
         [
           csvEscape(group.campaignName),
@@ -94,7 +105,15 @@ function buildRsaAdsCsv(rsaAds: RsaAd[]): string {
 
   const rows = [headers.join(",")];
 
-  for (const ad of rsaAds) {
+  // Sort by Campaign -> Ad Group
+  const sortedAds = [...rsaAds].sort((a, b) => {
+    if (a.campaignName !== b.campaignName) {
+      return a.campaignName.localeCompare(b.campaignName);
+    }
+    return a.adGroupName.localeCompare(b.adGroupName);
+  });
+
+  for (const ad of sortedAds) {
     const row = [
       csvEscape(ad.campaignName),
       csvEscape(ad.adGroupName),
@@ -949,6 +968,7 @@ async function generateWithAI(input: Input): Promise<ProcessedData> {
       let sanitized = sanitizeCampaignPlan(validated);
 
       // Quality gates
+      const structureValidation = validateStructureSanity(sanitized);
       const nameValidation = validateAdGroupNames(sanitized);
       const negativesValidation = validateNegativesCount(sanitized);
       const shopifyValidation = validateNoShopifyMention(JSON.stringify(sanitized));
@@ -966,8 +986,8 @@ async function generateWithAI(input: Input): Promise<ProcessedData> {
       // Re-validate negatives count after filtering
       const negativesRevalidation = validateNegativesCount(sanitized);
 
-      if (!nameValidation.valid || !negativesRevalidation.valid || !shopifyValidation.valid) {
-        const errors = [...nameValidation.errors, ...negativesRevalidation.errors, ...shopifyValidation.errors];
+      if (!structureValidation.valid || !nameValidation.valid || !negativesRevalidation.valid || !shopifyValidation.valid) {
+        const errors = [...structureValidation.errors, ...nameValidation.errors, ...negativesRevalidation.errors, ...shopifyValidation.errors];
         console.error("Campaign plan validation failed:", errors);
 
         if (attemptCount === maxAttempts - 1) {

@@ -2,13 +2,13 @@ import { z } from "zod";
 
 const AdGroupSchema = z.object({
   name: z.string().min(1).max(80),
-  keywords: z.array(z.string().min(1)).min(6).max(10),
+  keywords: z.array(z.string().min(1)).min(5).max(15),
   finalUrlHint: z.string().optional(),
 });
 
 const CampaignSchema = z.object({
   campaignName: z.string().min(1).max(100),
-  adGroups: z.array(AdGroupSchema).min(1).max(7),
+  adGroups: z.array(AdGroupSchema).min(1).max(6),
 });
 
 export const CampaignPlanSchema = z.object({
@@ -44,19 +44,54 @@ const FORBIDDEN_NAMES = [
   "sale items",
 ];
 
-export function sanitizeCampaignPlan(raw: CampaignPlan): CampaignPlan {
+export function deduplicateAdGroups(plan: CampaignPlan): CampaignPlan {
   return {
+    ...plan,
+    campaigns: plan.campaigns.map((campaign) => {
+      const seen = new Map<string, AdGroup>();
+
+      for (const group of campaign.adGroups) {
+        const normalizedName = group.name.toLowerCase().trim();
+
+        if (seen.has(normalizedName)) {
+          // Merge keywords into existing group
+          const existing = seen.get(normalizedName)!;
+          const mergedKeywords = Array.from(
+            new Set([...existing.keywords, ...group.keywords])
+          ).slice(0, 15);
+
+          seen.set(normalizedName, {
+            ...existing,
+            keywords: mergedKeywords,
+          });
+        } else {
+          seen.set(normalizedName, group);
+        }
+      }
+
+      return {
+        ...campaign,
+        adGroups: Array.from(seen.values()).slice(0, 6),
+      };
+    }),
+  };
+}
+
+export function sanitizeCampaignPlan(raw: CampaignPlan): CampaignPlan {
+  const sanitized = {
     brand: raw.brand.trim(),
     campaigns: raw.campaigns.map((campaign) => ({
       campaignName: campaign.campaignName.trim(),
       adGroups: campaign.adGroups.map((group) => ({
         name: group.name.trim(),
-        keywords: Array.from(new Set(group.keywords.map((k) => k.trim().toLowerCase()))).slice(0, 10),
+        keywords: Array.from(new Set(group.keywords.map((k) => k.trim().toLowerCase()))).slice(0, 15),
         finalUrlHint: group.finalUrlHint?.trim(),
       })),
     })),
     negatives: Array.from(new Set(raw.negatives.map((n) => n.trim().toLowerCase()))),
   };
+
+  return deduplicateAdGroups(sanitized);
 }
 
 export function sanitizeAdCopy(raw: AdCopy): AdCopy {
@@ -140,6 +175,52 @@ export function validateNoShopifyMention(text: string): { valid: boolean; errors
 
   if (text.toLowerCase().includes("shopify")) {
     errors.push("Text contains 'Shopify' mention which should be removed");
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+export function validateStructureSanity(plan: CampaignPlan): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+
+  for (const campaign of plan.campaigns) {
+    // Check distinct ad groups
+    const distinctNames = new Set(campaign.adGroups.map((g) => g.name.toLowerCase().trim()));
+
+    if (distinctNames.size < campaign.adGroups.length) {
+      errors.push(`Campaign "${campaign.campaignName}" has duplicate ad group names`);
+    }
+
+    if (campaign.adGroups.length === 0) {
+      errors.push(`Campaign "${campaign.campaignName}" has no ad groups`);
+    }
+
+    // Check for NonBrand having 3-6 unique groups
+    if (campaign.campaignName.includes("NonBrand") && campaign.adGroups.length < 3) {
+      errors.push(`NonBrand campaign must have at least 3 ad groups, found ${campaign.adGroups.length}`);
+    }
+
+    // Check keyword distribution (no single ad group should dominate)
+    const totalKeywords = campaign.adGroups.reduce((sum, g) => sum + g.keywords.length, 0);
+    for (const group of campaign.adGroups) {
+      const percentage = (group.keywords.length / totalKeywords) * 100;
+      if (percentage > 80) {
+        errors.push(
+          `Ad group "${group.name}" has ${percentage.toFixed(0)}% of all keywords (should be more balanced)`
+        );
+      }
+
+      // Check for empty ad groups
+      if (group.keywords.length === 0) {
+        errors.push(`Ad group "${group.name}" has no keywords`);
+      }
+
+      // Check for exact keyword duplicates within ad group
+      const uniqueKeywords = new Set(group.keywords.map((k) => k.toLowerCase().trim()));
+      if (uniqueKeywords.size < group.keywords.length) {
+        errors.push(`Ad group "${group.name}" has duplicate keywords`);
+      }
+    }
   }
 
   return { valid: errors.length === 0, errors };
