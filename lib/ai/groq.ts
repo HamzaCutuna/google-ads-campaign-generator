@@ -58,7 +58,7 @@ export class GroqProvider implements AIProvider {
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${this.apiKey.substring(0, 10)}...`,
+        Authorization: `Bearer ${this.apiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(request),
