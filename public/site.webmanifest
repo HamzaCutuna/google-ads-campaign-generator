@@ -1,0 +1,22 @@
+{
+  "name": "AdsKit.io - Free Google Ads Campaign Generator",
+  "short_name": "AdsKit",
+  "description": "Generate launch-ready Google Ads campaigns instantly. Free, no signup required.",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0F172A",
+  "background_color": "#0F172A",
+  "display": "standalone",
+  "start_url": "/",
+  "scope": "/"
+}
