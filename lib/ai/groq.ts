@@ -88,8 +88,8 @@ export class GroqProvider implements AIProvider {
   private getModel(systemPrompt: string): string {
     // Use AI_MODEL_COPY for ad copy, AI_MODEL_PLAN for campaign planning
     if (systemPrompt.includes("Google Ads copywriter")) {
-      return process.env.AI_MODEL_COPY || "llama-3.1-70b-versatile";
+      return process.env.AI_MODEL_COPY || "llama-3.3-70b-versatile";
     }
-    return process.env.AI_MODEL_PLAN || "llama-3.1-70b-versatile";
+    return process.env.AI_MODEL_PLAN || "llama-3.3-70b-versatile";
   }
 }
