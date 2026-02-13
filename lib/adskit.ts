@@ -646,148 +646,65 @@ function generateDummyData(input: Input): ProcessedData {
 
   const adGroups = [...nonBrandGroups, brandGroup];
 
-  const rsaAds: RsaAd[] = [
-    {
-      campaignName: "Search - NonBrand",
-      adGroupName: "Premium Products",
-      finalUrl: baseUrl,
-      headlines: [
-        "Premium Products Online",
-        "Shop Quality Items",
-        "Luxury Selection Available",
-        "Order Premium Goods",
-        "High-End Products",
-        "Premium Quality Shop",
-        "Exclusive Items Online",
-        "Shop Premium Collection",
-        "Quality You Can Trust",
-        "Premium Products Delivered",
-        "Elegant & Refined",
-        "Curated Premium Selection",
-        "Order High-Quality Items",
-        "Premium Shopping Experience",
-        "Fast Premium Delivery",
-      ],
-      descriptions: [
-        "Discover our curated collection of premium products. Fast shipping and easy returns.",
-        "Shop high-quality premium items with secure checkout and reliable delivery.",
-        "Premium products at competitive prices. Order today and experience quality.",
-        "Browse our premium selection. Trusted by customers worldwide for quality and service.",
-      ],
-    },
-    {
-      campaignName: "Search - NonBrand",
-      adGroupName: "Best Sellers",
-      finalUrl: baseUrl,
-      headlines: [
-        "Top Selling Products",
-        "Customer Favorites",
-        "Most Popular Items",
-        "Best Sellers Online",
-        "Shop Top Products",
-        "Proven Customer Picks",
-        "Popular Products",
-        "Best Selling Items",
-        "Customer Choice Products",
-        "Top Rated Sellers",
-        "Most Loved Items",
-        "Shop Best Sellers",
-        "Popular & Proven",
-        "Best Selling Collection",
-        "Trending Products",
-      ],
-      descriptions: [
-        "Shop our best-selling products chosen by thousands of customers. Fast delivery.",
-        "Browse customer favorites with verified reviews. Secure checkout and easy returns.",
-        "Most popular items in stock. Order today with confidence and fast shipping.",
-        "Top selling products at great prices. Join thousands of satisfied customers.",
-      ],
-    },
-    {
-      campaignName: "Search - NonBrand",
-      adGroupName: "New Arrivals",
-      finalUrl: baseUrl,
-      headlines: [
-        "New Arrivals Now Available",
-        "Latest Products In Stock",
-        "Fresh New Additions",
-        "Shop New Arrivals",
-        "Just Launched Products",
-        "New Collection Online",
-        "Latest Additions",
-        "Brand New Products",
-        "New Arrivals Daily",
-        "Fresh Stock Available",
-        "Latest Collection",
-        "New Products Added",
-        "Shop Latest Arrivals",
-        "New & Trending",
-        "Recently Added Items",
-      ],
-      descriptions: [
-        "Check out our latest arrivals. New products added regularly with fast shipping.",
-        "Shop the newest additions to our collection. Secure checkout and quick delivery.",
-        "Fresh new products now available. Order today and stay ahead of trends.",
-        "Latest arrivals in stock. Browse new products and order with confidence.",
-      ],
-    },
-    {
-      campaignName: "Search - NonBrand",
-      adGroupName: "Sale Items",
-      finalUrl: baseUrl,
-      headlines: [
-        "Sale Items Now Available",
-        "Shop Discounted Products",
-        "Sale Prices Online",
-        "Discounted Items",
-        "Sale Collection",
-        "Special Offer Products",
-        "Shop Sale Online",
-        "Discounted Prices",
-        "Sale Items In Stock",
-        "Limited Time Sale",
-        "Shop Sale Collection",
-        "Discounted Selection",
-        "Sale Products Available",
-        "Special Pricing",
-        "Sale Ends Soon",
-      ],
-      descriptions: [
-        "Shop sale items at discounted prices. Limited stock available with fast shipping.",
-        "Browse our sale collection. Great prices on quality products with secure checkout.",
-        "Discounted products now available. Order today and save with fast delivery.",
-        "Sale items in stock. Shop now while supplies last with easy returns.",
-      ],
-    },
-    {
-      campaignName: "Search - Brand",
-      adGroupName: "Brand",
-      finalUrl: baseUrl,
-      headlines: [
-        `Official ${brand} Store`,
-        `${brand} - Shop Direct`,
-        `Buy from ${brand}`,
-        `${brand} Website`,
-        `${brand} Official Site`,
-        `Shop ${brand} Collection`,
-        `${brand} Products`,
-        `${brand} Online Store`,
-        `Genuine ${brand}`,
-        `${brand} - Authentic`,
-        `${brand} Direct`,
-        `Visit ${brand} Store`,
-        `${brand} Headquarters`,
-        `${brand} Official Shop`,
-        `${brand} - Order Now`,
-      ],
-      descriptions: [
-        `Shop the official ${brand} collection. Authentic products with fast shipping.`,
-        `Buy directly from ${brand}. Secure checkout and reliable customer service.`,
-        `Official ${brand} store online. Browse our full collection and order today.`,
-        `${brand} products delivered fast. Official store with quality guarantee.`,
-      ],
-    },
-  ];
+  // Generate RSA ads for each ad group
+  const rsaAds: RsaAd[] = nonBrandGroups.map((group) => ({
+    campaignName: group.campaignName,
+    adGroupName: group.name,
+    finalUrl: group.finalUrl,
+    headlines: [
+      `Shop ${group.name} Online`,
+      `Buy ${group.name}`,
+      `${group.name} For Sale`,
+      `Order ${group.name}`,
+      `${group.name} Available Now`,
+      `Quality ${group.name}`,
+      `${group.name} Direct`,
+      `Shop Our ${group.name}`,
+      `${group.name} Online Store`,
+      `Buy ${group.name} Now`,
+      `${group.name} In Stock`,
+      `Order ${group.name} Online`,
+      `${group.name} Fast Shipping`,
+      `${group.name} Collection`,
+      `Browse ${group.name}`,
+    ],
+    descriptions: [
+      `Shop our ${group.name.toLowerCase()} collection online. Fast shipping and secure checkout available.`,
+      `Browse quality ${group.name.toLowerCase()} with easy returns. Order today and get fast delivery.`,
+      `Buy ${group.name.toLowerCase()} directly from our store. Trusted service and quick shipping.`,
+      `${group.name} available for purchase. Secure checkout and reliable customer support.`,
+    ],
+  }));
+
+  // Add Brand ad group RSA
+  rsaAds.push({
+    campaignName: "Search - Brand",
+    adGroupName: "Brand",
+    finalUrl: baseUrl,
+    headlines: [
+      `Official ${brand} Store`,
+      `${brand} - Shop Direct`,
+      `Buy from ${brand}`,
+      `${brand} Website`,
+      `${brand} Official Site`,
+      `Shop ${brand} Collection`,
+      `${brand} Products`,
+      `${brand} Online Store`,
+      `Genuine ${brand}`,
+      `${brand} - Authentic`,
+      `${brand} Direct`,
+      `Visit ${brand} Store`,
+      `Browse ${brand}`,
+      `${brand} Official Shop`,
+      `${brand} - Order Now`,
+    ],
+    descriptions: [
+      `Shop the official ${brand} collection. Authentic products with fast shipping.`,
+      `Buy directly from ${brand}. Secure checkout and reliable customer service.`,
+      `Official ${brand} store online. Browse our full collection and order today.`,
+      `${brand} products delivered fast. Official store with quality guarantee.`,
+    ],
+  });
 
   const baseNegatives = [
     "free",
@@ -1136,14 +1053,29 @@ async function generateWithAI(input: Input): Promise<ProcessedData> {
 }
 
 export async function generateAdsKitZip(input: Input): Promise<Buffer> {
+  console.log("=== GENERATION START ===");
+  console.log("Input:", JSON.stringify(input, null, 2));
+
   let data: ProcessedData;
 
   try {
+    console.log("Attempting AI generation...");
     data = await generateWithAI(input);
+    console.log("✓ AI generation successful");
   } catch (error) {
-    console.error("AI generation failed, using fallback dummy content:", error);
+    console.error("✗ AI generation failed with error:");
+    console.error(error);
+    console.error("Stack trace:", error instanceof Error ? error.stack : "N/A");
+    console.warn("⚠ Falling back to dummy data generation");
     data = generateDummyData(input);
+    console.log("✓ Dummy data generated");
   }
+
+  console.log("Generated data summary:");
+  console.log(`- Ad Groups: ${data.adGroups.length}`);
+  console.log(`- RSA Ads: ${data.rsaAds.length}`);
+  console.log(`- Negatives: ${data.negatives.length}`);
+  console.log(`- Brand: ${data.brand}`);
 
   const zip = new JSZip();
   zip.file("campaigns_keywords.csv", buildCampaignsKeywordsCsv(data.adGroups));
@@ -1153,5 +1085,6 @@ export async function generateAdsKitZip(input: Input): Promise<Buffer> {
   zip.file("landing-checklist.md", buildLandingChecklist());
   zip.file("optimization-7days.md", buildOptimizationMd());
 
+  console.log("=== GENERATION COMPLETE ===");
   return zip.generateAsync({ type: "nodebuffer", compression: "DEFLATE" });
 }
