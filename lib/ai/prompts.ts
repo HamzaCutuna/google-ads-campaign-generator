@@ -13,7 +13,7 @@ CRITICAL RULES:
 - Keywords must include buyer intent modifiers: buy, shop, order, price, online, near me, gift.
 - NO informational keywords: how to, tutorial, guide, what is, meaning, ideas, DIY.
 - NO cross-category mixing. "Necklaces" ad group should only contain necklace keywords, not ring or bracelet keywords.
-- Include 100+ negative keywords covering: free, cheap, discount, coupon, DIY, how-to, tutorial, pattern, template, jobs, careers, wholesale, supplier, manufacturer, distributor, amazon, ebay, aliexpress, temu, walmart, target, reviews, images, meaning, definition, ideas, used, second hand, repair, rental.
+- Include 50+ negative keywords covering: free, cheap, discount, coupon, DIY, how-to, tutorial, pattern, template, jobs, careers, wholesale, supplier, manufacturer, distributor, amazon, ebay, aliexpress, temu, walmart, target, reviews, images, meaning, definition, ideas, used, second hand, repair, rental.
 - CRITICAL: Do NOT include any product-related terms, materials, or craftsmanship descriptors in negatives. Example: for a handmade wood products brand, do NOT add "handmade", "wood", "wooden", "epoxy", "resin", "custom", "personalized" to negatives.
 - Do NOT mention "Shopify" anywhere in the output.
 - Optionally include finalUrlHint for category pages if confident.
@@ -117,7 +117,7 @@ Return ONLY the JSON object, nothing else.`;
 
 export const REPAIR_JSON_PROMPT = `The previous response was not valid JSON or violated constraints. Fix all issues:
 - Use ONLY real product category names (no "Core Offers", "High Intent", "Competitor", "General", "Misc", "Premium Products", "Best Sellers", "New Arrivals", "Sale Items")
-- Ensure 100+ negative keywords
+- Ensure 50+ negative keywords
 - Do NOT include product-related terms, materials, or craftsmanship descriptors in negatives
 - Ensure ad copy is unique per ad group
 - Remove any "Shopify" mentions

@@ -14,7 +14,7 @@ const CampaignSchema = z.object({
 export const CampaignPlanSchema = z.object({
   brand: z.string().min(1).max(100),
   campaigns: z.array(CampaignSchema).min(1).max(2),
-  negatives: z.array(z.string().min(1)).min(100),
+  negatives: z.array(z.string().min(1)).min(50),
 });
 
 export type CampaignPlan = z.infer<typeof CampaignPlanSchema>;
@@ -139,8 +139,8 @@ export function validateCopyUniqueness(copies: AdCopy[]): { valid: boolean; erro
 export function validateNegativesCount(plan: CampaignPlan): { valid: boolean; errors: string[] } {
   const errors: string[] = [];
 
-  if (plan.negatives.length < 100) {
-    errors.push(`Only ${plan.negatives.length} negatives provided. Minimum required: 100`);
+  if (plan.negatives.length < 50) {
+    errors.push(`Only ${plan.negatives.length} negatives provided. Minimum required: 50`);
   }
 
   return { valid: errors.length === 0, errors };

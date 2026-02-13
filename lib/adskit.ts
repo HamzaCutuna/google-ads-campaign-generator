@@ -875,7 +875,7 @@ async function generateWithAI(input: Input): Promise<ProcessedData> {
         SYSTEM_CAMPAIGN_PLAN,
         attemptCount === 0 ? planUserPrompt : planUserPrompt + "\n\n" + REPAIR_JSON_PROMPT,
         {
-          maxTokens: 2000,
+          maxTokens: 4000,
           temperature: 0.2,
         }
       );
