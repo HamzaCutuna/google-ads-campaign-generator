@@ -928,97 +928,88 @@ async function generateWithAI(input: Input): Promise<ProcessedData> {
     }
   }
 
-  // Step 2: Generate ad copy for each ad group
-  const adCopyPromises: Promise<{ campaignName: string; adGroupName: string; copy: AIAdCopy }>[] = [];
+  // Step 2: Generate ONE ad copy per campaign (not per ad group)
+  const adCopyPromises: Promise<{ campaignName: string; copy: AIAdCopy }>[] = [];
 
   for (const campaign of campaignPlan!.campaigns) {
-    for (const group of campaign.adGroups) {
-      const promise = (async () => {
-        const keywords = group.keywords;
-        const copyUserPrompt = getUserAdCopyPrompt(
-          campaign.campaignName,
-          group.name,
-          keywords,
-          input.storeUrl,
-          input.description
-        );
+    const promise = (async () => {
+      // Collect all keywords from all ad groups in this campaign
+      const allKeywords = campaign.adGroups.flatMap((g) => g.keywords);
+      const allAdGroupNames = campaign.adGroups.map((g) => g.name).join(", ");
 
-        let attemptCount = 0;
-        const maxAttempts = 2;
+      const copyUserPrompt = getUserAdCopyPrompt(
+        campaign.campaignName,
+        allAdGroupNames,
+        allKeywords,
+        input.storeUrl,
+        input.description
+      );
 
-        while (attemptCount < maxAttempts) {
-          try {
-            const copyResponse = await provider.chatJSON(
-              SYSTEM_AD_COPY,
-              attemptCount === 0 ? copyUserPrompt : copyUserPrompt + "\n\n" + REPAIR_JSON_PROMPT,
-              {
-                maxTokens: 1500,
-                temperature: 0.3,
-              }
-            );
+      let attemptCount = 0;
+      const maxAttempts = 2;
 
-            const parsed = safeParseJSON<AIAdCopy>(copyResponse);
-            const validated = AdCopySchema.parse(parsed);
-            const sanitized = sanitizeAdCopy(validated);
-
-            const shopifyValidation = validateNoShopifyMention(JSON.stringify(sanitized));
-
-            if (!shopifyValidation.valid) {
-              console.error("Ad copy validation failed:", shopifyValidation.errors);
-
-              if (attemptCount === maxAttempts - 1) {
-                throw new Error(`Quality gate failed: ${shopifyValidation.errors.join(", ")}`);
-              }
-
-              attemptCount++;
-              continue;
+      while (attemptCount < maxAttempts) {
+        try {
+          const copyResponse = await provider.chatJSON(
+            SYSTEM_AD_COPY,
+            attemptCount === 0 ? copyUserPrompt : copyUserPrompt + "\n\n" + REPAIR_JSON_PROMPT,
+            {
+              maxTokens: 1500,
+              temperature: 0.3,
             }
+          );
 
-            return {
-              campaignName: campaign.campaignName,
-              adGroupName: group.name,
-              copy: sanitized,
-            };
-          } catch (error) {
-            console.error(`Ad copy generation attempt ${attemptCount + 1} failed for ${group.name}:`, error);
+          const parsed = safeParseJSON<AIAdCopy>(copyResponse);
+          const validated = AdCopySchema.parse(parsed);
+          const sanitized = sanitizeAdCopy(validated);
+
+          const shopifyValidation = validateNoShopifyMention(JSON.stringify(sanitized));
+
+          if (!shopifyValidation.valid) {
+            console.error("Ad copy validation failed:", shopifyValidation.errors);
 
             if (attemptCount === maxAttempts - 1) {
-              throw error;
+              throw new Error(`Quality gate failed: ${shopifyValidation.errors.join(", ")}`);
             }
 
             attemptCount++;
+            continue;
           }
+
+          return {
+            campaignName: campaign.campaignName,
+            copy: sanitized,
+          };
+        } catch (error) {
+          console.error(`Ad copy generation attempt ${attemptCount + 1} failed for ${campaign.campaignName}:`, error);
+
+          if (attemptCount === maxAttempts - 1) {
+            throw error;
+          }
+
+          attemptCount++;
         }
+      }
 
-        throw new Error(`Failed to generate ad copy for ${group.name}`);
-      })();
+      throw new Error(`Failed to generate ad copy for ${campaign.campaignName}`);
+    })();
 
-      adCopyPromises.push(promise);
-    }
+    adCopyPromises.push(promise);
   }
 
   const adCopyResults = await Promise.all(adCopyPromises);
-
-  // Quality gate: Check copy uniqueness
-  const uniquenessValidation = validateCopyUniqueness(adCopyResults.map((r) => r.copy));
-
-  if (!uniquenessValidation.valid) {
-    console.error("Ad copy uniqueness validation failed:", uniquenessValidation.errors);
-    // Don't throw, just log warning as this is harder to fix
-  }
 
   // Step 3: Build processed data
   const adGroups: AdGroupData[] = [];
   const rsaAds: RsaAd[] = [];
 
   for (const campaign of campaignPlan!.campaigns) {
+    // Get the ad copy for this campaign (reused for all ad groups)
+    const adCopyResult = adCopyResults.find((r) => r.campaignName === campaign.campaignName);
+
+    if (!adCopyResult) continue;
+
     for (const group of campaign.adGroups) {
-      const adCopyResult = adCopyResults.find(
-        (r) => r.campaignName === campaign.campaignName && r.adGroupName === group.name
-      );
-
-      if (!adCopyResult) continue;
-
       const finalUrl = adCopyResult.copy.finalUrl || group.finalUrlHint || input.storeUrl;
 
       adGroups.push({

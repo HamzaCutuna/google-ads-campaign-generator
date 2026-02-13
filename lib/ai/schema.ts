@@ -23,8 +23,8 @@ export type AdGroup = z.infer<typeof AdGroupSchema>;
 
 export const AdCopySchema = z.object({
   finalUrl: z.string().min(1),
-  headlines: z.array(z.string().min(1).max(30)).length(15),
-  descriptions: z.array(z.string().min(1).max(90)).length(4),
+  headlines: z.array(z.string().min(1).max(35)).length(15), // Allow up to 35, sanitization will truncate to 30
+  descriptions: z.array(z.string().min(1).max(95)).length(4), // Allow up to 95, sanitization will truncate to 90
 });
 
 export type AdCopy = z.infer<typeof AdCopySchema>;

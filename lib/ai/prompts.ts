@@ -75,28 +75,29 @@ export const SYSTEM_AD_COPY = `You are a Google Ads copywriter specializing in p
 
 CRITICAL RULES:
 - Return ONLY valid JSON. No markdown, no code fences, no commentary.
-- Generate UNIQUE copy for this specific ad group that reflects its category/theme.
-- At least 6 of the 15 headlines must clearly reference the ad group's category or theme.
+- Generate 15 HIGH-QUALITY, versatile headlines that work across all product categories/services in this campaign.
+- Mix specific product/service mentions with strong value propositions and clear CTAs.
 - Generate 15 headlines, each EXACTLY 30 characters or less.
 - Generate 4 descriptions, each EXACTLY 90 characters or less.
 - NO generic fluff: avoid "Trusted by thousands", "Best selection", "Quality guaranteed", "Top-rated", "No.1".
 - NO policy violations: avoid superlatives like "#1", "best ever", "guaranteed results".
 - NO excessive punctuation (!!!, ???) or ALL CAPS.
 - Use neutral, factual language with clear value propositions and CTAs.
-- For Brand ad groups, use brand/navigational copy ("Official", "Handmade", "Shop the Collection").
+- For Brand campaigns: use brand/navigational copy ("Official Store", "Handmade Products", "Shop the Collection").
+- For NonBrand campaigns: reference the main categories/products with value props ("Free Shipping", "Expert Support", "Custom Options").
 - Do NOT mention "Shopify" anywhere.
-- Include finalUrl (use base URL if no specific category page known).
+- Include finalUrl (use base URL).
 
 OUTPUT SCHEMA:
 {
-  "finalUrl": "https://example.com/category",
+  "finalUrl": "https://example.com",
   "headlines": ["headline 1", "headline 2", ...(15 total)],
   "descriptions": ["description 1", "description 2", "description 3", "description 4"]
 }`;
 
 export function getUserAdCopyPrompt(
   campaignName: string,
-  adGroupName: string,
+  adGroupNames: string,
   keywords: string[],
   storeUrl: string,
   description: string
@@ -104,14 +105,14 @@ export function getUserAdCopyPrompt(
   return `Website: ${storeUrl}
 Business: ${description}
 Campaign: ${campaignName}
-Ad Group: ${adGroupName}
-Keywords: ${keywords.join(", ")}
+Ad Groups in Campaign: ${adGroupNames}
+Keywords: ${keywords.slice(0, 30).join(", ")}${keywords.length > 30 ? "..." : ""}
 
-Generate UNIQUE RSA ad copy for this specific ad group as strict JSON following the schema above.
-Copy must be different from other ad groups and reflect this category/theme.
-At least 6 headlines must reference the ad group's category.
+Generate ONE set of HIGH-QUALITY RSA ad copy that works across ALL ad groups in this campaign.
+Create 15 versatile, compelling headlines that reference the main products/services/categories.
+Create 4 strong descriptions that highlight key value propositions.
 Ensure headlines are ≤30 chars and descriptions are ≤90 chars.
-Include finalUrl.
+Include finalUrl (use base URL: ${storeUrl}).
 Return ONLY the JSON object, nothing else.`;
 }
 
