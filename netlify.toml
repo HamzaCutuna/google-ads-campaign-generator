@@ -1,0 +1,26 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  # Exclude non-sensitive configuration values from secrets scanning
+  # Only GROQ_API_KEY is an actual secret
+  SECRETS_SCAN_OMIT_KEYS = "AI_PROVIDER,AI_MODEL_PLAN,AI_MODEL_COPY"
+
+# Next.js specific configuration
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[redirects]]
+  from = "/_next/image"
+  to = "/.netlify/images?url=:url&w=:width&q=:quality"
+  status = 200
+  query = { url = ":url", w = ":width", q = ":quality" }
+
+[[redirects]]
+  from = "/_ipx/*"
+  to = "/.netlify/images?url=:url&w=:width&q=:quality"
+  status = 200
+  query = { url = ":url", w = ":width", q = ":quality" }
