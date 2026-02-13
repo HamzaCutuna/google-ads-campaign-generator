@@ -38,6 +38,9 @@ export class GroqProvider implements AIProvider {
     const maxTokens = options?.maxTokens || 1400;
     const temperature = options?.temperature ?? 0.2;
 
+    console.log(`[Groq] Making API call with model: ${model}`);
+    console.log(`[Groq] Parameters: maxTokens=${maxTokens}, temperature=${temperature}`);
+
     const request: GroqChatRequest = {
       model,
       messages: [
@@ -49,17 +52,24 @@ export class GroqProvider implements AIProvider {
       response_format: { type: "json_object" },
     };
 
+    console.log(`[Groq] Calling ${this.baseUrl}/chat/completions...`);
+    const startTime = Date.now();
+
     const response = await fetch(`${this.baseUrl}/chat/completions`, {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey.substring(0, 10)}...`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(request),
     });
 
+    const elapsed = Date.now() - startTime;
+    console.log(`[Groq] API response received in ${elapsed}ms, status: ${response.status}`);
+
     if (!response.ok) {
       const errorText = await response.text();
+      console.error(`[Groq] API error (${response.status}):`, errorText);
       throw new Error(`Groq API error (${response.status}): ${errorText}`);
     }
 
@@ -67,9 +77,11 @@ export class GroqProvider implements AIProvider {
     const content = data.choices[0]?.message?.content;
 
     if (!content) {
+      console.error("[Groq] API returned empty content");
       throw new Error("Groq API returned empty content");
     }
 
+    console.log(`[Groq] Success! Response length: ${content.length} characters`);
     return content;
   }
 

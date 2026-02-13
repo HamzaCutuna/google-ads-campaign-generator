@@ -10,12 +10,15 @@ export interface AIProvider {
 
 export function getAIProvider(): AIProvider {
   const provider = process.env.AI_PROVIDER || "groq";
+  console.log(`[AI Provider] Creating provider: ${provider}`);
 
   if (provider === "groq") {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
-      throw new Error("GROQ_API_KEY is required when AI_PROVIDER=groq");
+      console.error("[AI Provider] FATAL: GROQ_API_KEY environment variable is not set!");
+      throw new Error("GROQ_API_KEY is required when AI_PROVIDER=groq. Please set it in Netlify environment variables.");
     }
+    console.log(`[AI Provider] GROQ_API_KEY found (length: ${apiKey.length})`);
     return new GroqProvider(apiKey);
   }
 
